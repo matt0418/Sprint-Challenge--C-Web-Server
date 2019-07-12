@@ -52,7 +52,7 @@ urlinfo_t *parse_url(char *url)
   path = first;
 
   first--;
-  *first = '\n';
+  *first = '\0';
 
   char * first_colon;
   first_colon = strchr(url, ':');
@@ -61,7 +61,7 @@ urlinfo_t *parse_url(char *url)
   port = first_colon;
 
   first_colon--;
-  *first_colon = '\n';
+  *first_colon = '\0';
 
   hostname = url;
 
@@ -119,6 +119,19 @@ int main(int argc, char *argv[])
     fprintf(stderr,"usage: client HOSTNAME:PORT/PATH\n");
     exit(1);
   }
+
+  struct urlinfo_t *urlinfo;
+  urlinfo = parse_url(argv[1]);
+
+  sockfd = get_socket(urlinfo->hostname, urlinfo->port);
+  send_request(sockfd, urlinfo->hostname, urlinfo->port, urlinfo->path);
+
+  while ((numbytes = recv(sockfd, buf, BUFSIZE -1, 0)) > 0) {
+    printf("%s", buf);
+  }
+
+  free(urlinfo);
+  
 
   /*
     1. Parse the input URL
