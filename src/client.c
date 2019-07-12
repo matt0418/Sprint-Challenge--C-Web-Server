@@ -45,6 +45,30 @@ urlinfo_t *parse_url(char *url)
     6. Overwrite the colon with a '\0' so that we are just left with the hostname.
   */
 
+  char * first;
+  first = strchr(url, '/');
+
+  first++;
+  path = first;
+
+  first--;
+  *first = '\0';
+
+  char * first_colon;
+  first_colon = strchr(url, ':');
+
+  first_colon++;
+  port = first_colon;
+
+  first_colon--;
+  *first_colon = '\0';
+
+  hostname = url;
+
+  urlinfo->hostname = hostname;
+  urlinfo->path = path;
+  urlinfo->port = port;
+
   ///////////////////
   // IMPLEMENT ME! //
   ///////////////////
@@ -71,8 +95,19 @@ int send_request(int fd, char *hostname, char *port, char *path)
   ///////////////////
   // IMPLEMENT ME! //
   ///////////////////
+  sprintf(request, "GET /%s HTTP/1.1\n"
+                  "Host: %s:%s\n"
+                  "Connection: close\n"
+                  "\n",
+                  path, hostname, port);
 
-  return 0;
+  rv = send(fd, request, strlen(request), 0);
+
+  if (rv < 0) {
+    perror("send");
+  }
+
+  return rv;
 }
 
 int main(int argc, char *argv[])
@@ -84,6 +119,19 @@ int main(int argc, char *argv[])
     fprintf(stderr,"usage: client HOSTNAME:PORT/PATH\n");
     exit(1);
   }
+
+  struct urlinfo_t *urlinfo;
+  urlinfo = parse_url(argv[1]);
+
+  sockfd = get_socket(urlinfo->hostname, urlinfo->port);
+  send_request(sockfd, urlinfo->hostname, urlinfo->port, urlinfo->path);
+
+  while ((numbytes = recv(sockfd, buf, BUFSIZE -1, 0)) > 0) {
+    printf("%s", buf);
+  }
+
+  free(urlinfo);
+  
 
   /*
     1. Parse the input URL
