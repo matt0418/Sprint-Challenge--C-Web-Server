@@ -51,6 +51,24 @@ urlinfo_t *parse_url(char *url)
   first++;
   path = first;
 
+  first--;
+  *first = '\n';
+
+  char * first_colon;
+  first_colon = strchr(url, ':');
+
+  first_colon++;
+  port = first_colon;
+
+  first_colon--;
+  *first_colon = '\n';
+
+  hostname = url;
+
+  urlinfo->hostname = hostname;
+  urlinfo->path = path;
+  urlinfo->port = port;
+
   ///////////////////
   // IMPLEMENT ME! //
   ///////////////////
